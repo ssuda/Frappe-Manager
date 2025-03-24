@@ -626,6 +626,15 @@ class Bench:
                 self.bench_config.ssl = certificate
                 self.create_certificate()
 
+        elif certificate.ssl_type == SUPPORTED_SSL_TYPES.local:
+            if self.has_certificate():
+                if raise_error:
+                    raise BenchSSLCertificateAlreadyIssued(self.name)
+            else:
+                self.certificate_manager.set_certificate(certificate)
+                self.bench_config.ssl = certificate
+                self.create_certificate()
+
         elif certificate.ssl_type == SUPPORTED_SSL_TYPES.none:
             if self.has_certificate():
                 self.remove_certificate()

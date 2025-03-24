@@ -3,6 +3,7 @@ from datetime import timedelta, datetime
 from frappe_manager import SSL_RENEW_BEFORE_DAYS
 from frappe_manager.ssl_manager import SUPPORTED_SSL_TYPES
 from frappe_manager.ssl_manager.letsencrypt_certificate_service import LetsEncryptCertificateService
+from frappe_manager.ssl_manager.local_certificate_service import LocalCertificateService
 from frappe_manager.ssl_manager.no_op_certificate_service import NoOpCertificateService
 from frappe_manager.ssl_manager.certificate_exceptions import (
     SSLCertificateNotDueForRenewalError,
@@ -33,9 +34,12 @@ class SSLCertificateManager:
             webroot_dir = self.webroot_dir
             certificate_service = LetsEncryptCertificateService(self.proxy_manager.dirs.ssl.host, webroot_dir)
             return certificate_service
-
-        certificate_service = NoOpCertificateService(Path('/dev/null'))
-        return certificate_service
+        elif self.certificate.ssl_type == SUPPORTED_SSL_TYPES.local:
+            certificate_service = LocalCertificateService(self.proxy_manager.dirs.ssl.host)
+            return certificate_service
+        else:
+            certificate_service = NoOpCertificateService(Path('/dev/null'))
+            return certificate_service
 
     def set_certificate(self, certificate: SSLCertificate):
         self.certificate = certificate

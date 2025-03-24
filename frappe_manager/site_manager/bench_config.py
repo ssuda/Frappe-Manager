@@ -144,6 +144,15 @@ class BenchConfig(BaseModel):
                     api_key=api_key,
                     api_token=api_token,
                 )
+            elif ssl_type == SUPPORTED_SSL_TYPES.local:
+                cert_path = Path(ssl_data.get('cert_path'))
+                key_path = Path(ssl_data.get('key_path'))
+                ssl_instance = SSLCertificate(
+                    domain=domain,
+                    ssl_type=ssl_type,
+                    cert_path=cert_path,
+                    key_path=key_path
+                )
             else:
                 ssl_instance = SSLCertificate(domain=domain, ssl_type=SUPPORTED_SSL_TYPES.none)
         else:

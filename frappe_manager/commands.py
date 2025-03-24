@@ -166,6 +166,14 @@ def create(
         Optional[str],
         typer.Option(help="Specify email for letsencrypt", show_default=False),
     ] = None,
+    ssl_cert_path: Annotated[
+        Optional[str],
+        typer.Option("--ssl-cert-path", help="Path to existing SSL certificate file (required for local SSL)", show_default=False),
+    ] = None,
+    ssl_cert_key_path: Annotated[
+        Optional[str],
+        typer.Option("--ssl-cert-key-path", help="Path to corresponding SSL certificate key file (required for local SSL)", show_default=False),
+    ] = None,
     developer_mode: Annotated[
         EnableDisableOptionsEnum, typer.Option(help="Toggle frappe developer mode.")
     ] = EnableDisableOptionsEnum.disable,
@@ -226,6 +234,18 @@ def create(
             preferred_challenge=letsencrypt_preferred_challenge,
             api_key=fm_config_manager.letsencrypt.api_key,
             api_token=fm_config_manager.letsencrypt.api_token,
+        )
+
+    elif ssl == SUPPORTED_SSL_TYPES.local:
+        if not ssl_cert_path or not ssl_cert_key_path:
+            richprint.stop()
+            raise typer.BadParameter("Missing certificate paths", param_hint='--ssl-cert-path/--ssl-cert-key-path')
+
+        ssl_certificate = SSLCertificate(
+            domain=benchname,
+            ssl_type=ssl,
+            cert_path=Path(ssl_cert_path),
+            key_path=Path(ssl_cert_key_path)
         )
 
     elif ssl == SUPPORTED_SSL_TYPES.none:
@@ -495,6 +515,14 @@ def update(
         Optional[str],
         typer.Option(help="Specify email for letsencrypt", show_default=False),
     ] = None,
+    ssl_cert_path: Annotated[
+        Optional[str],
+        typer.Option(help="Local ssl cert path", show_default=False),
+    ] = None,
+    ssl_cert_key_path: Annotated[
+        Optional[str],
+        typer.Option(help="Local ssl cert key path", show_default=False),
+    ] = None,
     environment: Annotated[
         Optional[FMBenchEnvType],
         typer.Option("--environment", "-e", help="Switch bench environment.", show_default=False),
@@ -573,6 +601,14 @@ def update(
                 preferred_challenge=letsencrypt_preferred_challenge,
                 api_key=fm_config_manager.letsencrypt.api_key,
                 api_token=fm_config_manager.letsencrypt.api_token,
+            )
+
+        elif ssl == SUPPORTED_SSL_TYPES.local:
+            new_ssl_certificate = SSLCertificate(
+                domain=benchname,
+                ssl_type=ssl,
+                cert_path=Path(ssl_cert_path) if ssl_cert_path else None,
+                key_path=Path(ssl_cert_key_path) if ssl_cert_key_path else None,
             )
 
         richprint.print("Updating Certificate.")
